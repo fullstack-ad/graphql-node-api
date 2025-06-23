@@ -2,6 +2,7 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const { userSchema, postSchema, paginationSchema } = require("./validators");
+const { generateToken, verifyToken } = require("../utils/auth");
 
 let users = [
     { id: "1", name: "Andy", email: "andy@gmail.com" },
@@ -46,24 +47,35 @@ const resolvers = {
 
             return newUser;
         },
-        addPost: async (_, input) => {
-            const { userId, title, content } = postSchema.parse(input);
-
-            // check if user exists
-            const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
-
-            if (!user) {
-                throw new Error("user not found");
+        addPost: async (_, input, context) => {
+            if (!context.user) {
+                throw new Error("Unauthorized");
             }
+
+            const { title, content } = postSchema.parse(input);
+
+            const userId = context.user.userId;
 
             return await prisma.post.create({
                 data: {
                     title,
                     content,
-                    userId: parseInt(userId)
+                    userId
                 }
             });
         },
+        login: async (_, { email }) => {
+            const user = await prisma.user.findUnique({ where: { email } });
+
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            const token = generateToken(user);
+            return {
+                token, user
+            }
+        }
     },
 
     //Resolver per type

@@ -8,7 +8,6 @@ const userSchema = z.object({
 const postSchema = z.object({
     title: z.string().min(5, "Title is required"),
     content: z.string().min(10, "Content must be at least 10 characters long"),
-    userId: z.coerce.number().int().positive("User ID must be a positive integer"),
 });
 
 const paginationSchema = z.object({
