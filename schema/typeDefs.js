@@ -6,12 +6,21 @@ const typeDefs = gql`
         name:String!
         email:String!
         posts: [Post!]!
+        createdAt: String!
+        updatedAt: String!
     }
     
     type Post {
         id: ID!
         title: String!
         content: String!
+        user: User!
+        createdAt:String!
+        updatedAt: String!
+    }
+
+    type AuthPayload {
+        token: String!
         user: User!
     }
     
@@ -24,7 +33,8 @@ const typeDefs = gql`
     
     type Mutation {
         addUser(name:String!, email:String!): User!
-        addPost(userId: ID!, title: String!, content: String!): Post!
+        addPost(title: String!, content: String!): Post!
+        login(email:String!): AuthPayload!
     }
 `;
 
