@@ -1,0 +1,83 @@
+mutation getPassHasehd($getPassHashedPassword2: String!){
+  getPassHashed(password: $getPassHashedPassword2)
+}
+
+mutation loginAdmin($adminEmail:String!, $adminPass:String!) {
+  login(email: $adminEmail, password: $adminPass){
+    token
+    user {
+      id
+      name
+      email
+      role
+    }
+  }
+}
+
+mutation login($email:String!, $password:String!) {
+  login(email: $email, password: $password){
+    token
+    user {
+      id
+      name
+      email
+      role
+    }
+  }
+}
+
+mutation addUser($name: String!, $email: String!, $password:String!, $role:Role!){
+  addUser(name: $name, email: $email, password: $password, role:$role) {
+    id
+    name
+    email
+    role
+    createdAt
+    updatedAt
+  }
+}
+
+mutation addPost($title: String!, $content: String!){
+  addPost(title: $title, content: $content) {
+    id
+    content
+  }
+}
+
+query getUsers {
+  users {
+    id
+    name
+    email
+    role,
+    posts {
+      title
+    }
+  }
+}
+
+query getUser($userId: ID!){
+  user(id: $userId) {
+    name
+    email
+    role
+    posts {
+      title
+      content
+    }
+  }
+}
+
+# variables
+# {
+#   "adminEmail":"admin@gmail.com",
+#   "adminPass":"12345678",
+#   "title":"test authentication",
+#   "content": "test auth content ",
+#   "userId": 9,
+#   "name": "carlo",
+#   "email": "ca@gmail.com",
+#   "role":"USER",
+#   "password": "12345678",
+#   "getPassHashedPassword2": "12345678",
+# }

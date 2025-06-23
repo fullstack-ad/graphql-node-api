@@ -4,9 +4,7 @@ const prisma = new PrismaClient();
 const { userSchema, postSchema, paginationSchema } = require("./validators");
 const { generateToken, verifyToken } = require("../utils/auth");
 
-let users = [
-    { id: "1", name: "Andy", email: "andy@gmail.com" },
-    { id: "2", name: "Sandra", email: "sandra@gmail.com" }];
+const bcrypt = require("bcrypt");
 
 const resolvers = {
     Query: {
@@ -32,24 +30,30 @@ const resolvers = {
             }),
     },
     Mutation: {
-        addUser: async (_, input) => {
-            const { name, email } = userSchema.parse(input);
-            // Check if user with the same email already exists
+        addUser: async (_, input, context) => {
+            const { name, email, password, role } = userSchema.parse(input);
+
+            if(!context.user || context.user.role !== 'ADMIN'){
+                throw new Error(`Unauthorized: You must be an admin to add users  ${context.user.role}`);
+            }
+            
             const existingUser = await prisma.user.findUnique({ where: { email } });
 
             if (existingUser) {
                 throw new Error("User with this email already exists");
             }
 
+            const hashedPassword = await bcrypt.hash(password, 10);
+
             const newUser = await prisma.user.create({
-                data: { name, email }
+                data: { name, email, password: hashedPassword, role }
             })
 
             return newUser;
         },
         addPost: async (_, input, context) => {
             if (!context.user) {
-                throw new Error("Unauthorized");
+                throw new Error("Unauthorized: you must be logged in to add a post");
             }
 
             const { title, content } = postSchema.parse(input);
@@ -64,17 +68,30 @@ const resolvers = {
                 }
             });
         },
-        login: async (_, { email }) => {
+        login: async (_, { email, password }) => {
             const user = await prisma.user.findUnique({ where: { email } });
 
             if (!user) {
                 throw new Error("User not found");
             }
 
+            const valid = await bcrypt.compare(password, user.password);
+            if (!valid) {
+                throw new Error("Invalid creadentials");
+            }
+
             const token = generateToken(user);
             return {
                 token, user
             }
+        },
+        getPassHashed: async(_, {password})=>{
+            if(!password || password.length < 6) {
+                throw new Error("Password must be at least 6 characters long");
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+            return hashedPassword;
         }
     },
 
