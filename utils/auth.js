@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const SECRET = "supersecret123";
 
 function generateToken(user) {
-    return jwt.sign({ userId: user.id, email: user.email },
+    return jwt.sign({ userId: user.id, email: user.email, role: user.role },
         SECRET,
         { expiresIn: "1h" }
     );
